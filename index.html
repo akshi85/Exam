@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- css -->
+    <link rel="stylesheet" href="style.css">
+    <!-- bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Recipe Book</h1>
+        <div class="form-container">
+            <input type="text" id="recipeName" placeholder="Recipe Name">
+            <input type="text" id="recipeIngredients" placeholder="Recipe Ingredients">
+            <input type="text" id="recipecuisine type" placeholder="Recipe cuisinetype">
+            <textarea id="recipeInstructions" placeholder="Recipe Instructions"></textarea>
+            <button id="addButton" onclick="addOrUpdateRecipe()">Add Recipe</button>
+
+            <button id="updateButton" onclick="addOrUpdateRecipe()" style="display: none;">Update Recipe</button>
+        </div>
+
+        <div class="recipes-container" id="recipesContainer">
+
+        </div>
+
+        <button onclick="ClearAll()"
+            style="background-color:#28a745 ; color:aliceblue ; width: 80px; height: 35px; cursor: pointer; border-style: none; border-radius: 4px;">ClearAll</button>
+
+    </div>
+
+
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            loadRecipes();
+        });
+
+        let currentEditIndex = null;
+
+        function addOrUpdateRecipe() {
+            let name = document.getElementById("recipeName").value;
+            let instructions = document.getElementById("recipeInstructions").value;
+            let Ingredients = document.getElementById("recipeIngredients").value;
+            let cuisinetype = document.getElementById("recipecuisine type").value;
+
+            if (name && instructions) {
+                let recipes = getRecipesFromStorage();
+
+                if (currentEditIndex !== null) {
+                    recipes[currentEditIndex] = { name, instructions, Ingredients, cuisinetype };
+                    currentEditIndex = null;
+                    toggleButtons();
+                } else {
+                    recipes.push({ name, instructions, Ingredients, cuisinetype });
+                }
+
+                localStorage.setItem("recipes", JSON.stringify(recipes));
+                clearForm();
+                loadRecipes();
+            } else {
+                alert("Please fill out both fields.");
+            }
+        }
+
+        function loadRecipes() {
+            const recipes = getRecipesFromStorage();
+            const container = document.getElementById("recipesContainer");
+            container.innerHTML = "";
+
+            recipes.forEach((recipe, index) => {
+                const recipeElement = document.createElement("div");
+                recipeElement.classList.add("recipe");
+                recipeElement.innerHTML = `
+      <h3>${recipe.name}</h3>
+      <h3>${recipe.Ingredients}</h3>
+      <h3>${recipe.cuisinetype}</h3>
+      <p>${recipe.instructions}</p>
+      <button onclick="editRecipe(${index})">Edit</button>
+      <button class="delete" onclick="deleteRecipe(${index})">Delete</button>
+    `;
+                container.appendChild(recipeElement);
+            });
+        }
+
+        function deleteRecipe(index) {
+            let recipes = getRecipesFromStorage();
+            recipes.splice(index, 1);
+            localStorage.setItem("recipes", JSON.stringify(recipes));
+            loadRecipes();
+        }
+
+        function editRecipe(index) {
+            let recipes = getRecipesFromStorage();
+            document.getElementById("recipeName").value = recipes[index].name;
+            document.getElementById("recipeInstructions").value = recipes[index].instructions;
+            document.getElementById("recipeIngredients").value = recipes[index].Ingredients;
+            document.getElementById("recipecuisine type").value = recipes[index].cuisinetype;
+            currentEditIndex = index;
+            toggleButtons();
+        }
+
+        function getRecipesFromStorage() {
+            return JSON.parse(localStorage.getItem("recipes")) || [];
+        }
+
+        function clearForm() {
+            document.getElementById("recipeName").value = "";
+            document.getElementById("recipeInstructions").value = "";
+            document.getElementById("recipeIngredients").value = "";
+            document.getElementById("recipecuisine type").value = "";
+        }
+
+        function toggleButtons() {
+            let addButton = document.getElementById("addButton");
+            let updateButton = document.getElementById("updateButton");
+
+            if (currentEditIndex !== null) {
+                addButton.style.display = "none";
+                updateButton.style.display = "inline-block";
+            } else {
+                addButton.style.display = "inline-block";
+                updateButton.style.display = "none";
+            }
+        }
+
+        let ClearAll = () => {
+            localStorage.removeItem('recipes');
+            location.reload();
+            console.log(localStorage);
+        }
+
+        function searchRecipes(event) {
+            let query = event.target.value.toLowerCase();
+            let filteredRecipes = recipes.filter(recipe =>
+                recipe.title.toLowerCase().includes(query) ||
+                recipe.ingredients.toLowerCase().includes(query)
+            );
+            recipesList.innerHTML = '';
+            filteredRecipes.forEach(recipe => displayRecipe(recipe));
+        }
+    </script>
+</body>
+
+</html>
